@@ -25,10 +25,28 @@ const exampleNote = "C4"; // the note it plays
 // ---------- State ----------
 // State variables are the parts of your program that change over time.
 // For example: which octave you're playing in, or whether a drone is on.
+let distortion = 0.1; // whether the distortion effect is on or off
 
 // ---------- Sound ----------
 // Make the instruments and plug them into the speakers.
 const synth = new Tone.PolySynth(Tone.Synth).toDestination(); // can play several notes at once
+const distortionEffect = new Tone.Distortion(0.8).toDestination(); // an effect that makes the sound more "gritty"
+
+function raiseDistortion() {
+  distortion = distortion + 0.01;
+  if (distortion > 1) {
+    distortion = 1;
+  }
+  distortionEffect.distortion = distortion;
+}
+
+function lowerDistortion() {
+  distortion = distortion - 0.01;
+  if (distortion < 0) {
+    distortion = 0;
+  }
+  distortionEffect.distortion = distortion;
+}
 
 // ---------- Controls ----------
 // Runs every time a key goes down.
@@ -44,6 +62,11 @@ function keyDown(event) {
       synth.triggerAttack(exampleNote, Tone.now()); // keeps sounding until triggerRelease
     }
   }
+
+  if (event.key === " ") {
+    raiseDistortion();
+    console.log("Spacebar pressed: raising distortion to: " + distortion);
+  }
 }
 
 // Runs every time a key comes up.
@@ -56,9 +79,32 @@ function keyUp(event) {
   }
 }
 
+// ---------- Update ----------
+// Update the state based on which key was pressed. This is called after every key event.
+function update() {
+  // Example: replace this with your own instrument.
+  // (In this example, we don't have any state to update.)
+  lowerDistortion();
+
+  setTimeout(update, 100); // call update() again in 100 milliseconds
+  console.log("Update: lowering distortion to: " + distortion);
+}
+
+// ---------- Use ----------
+// Use the state to make sound. This is called after every key event.
+function use() {
+  // Example: replace this with your own instrument.
+  // (In this example, we connect the synth to the distortion effect.)
+  synth.connect(distortionEffect);
+  setTimeout(use, 100); // call use() again in 100 milliseconds
+}
+
 // ---------- Setup ----------
 // Setup is run once, at the start of the program. It sets everything up for us!
 function setup() {
+  update(); // Update the state
+  use(); // Use the state to make sound
+
   // Put your event listener code here
   window.addEventListener("keydown", keyDown);
   window.addEventListener("keyup", keyUp);
